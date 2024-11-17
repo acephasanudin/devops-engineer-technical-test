@@ -21,15 +21,47 @@ The repository is organized as follows:
 ```
 ├── 1-engineering-mindset/   # Section 1, Engineering Mindset
 │   ├── README.md            # Documentation
+│   ├── images/              # Diagrams and images for section 1
+│   │   └── diagram.png      # Diagram for section 1
 ├── 2-system-architecture/   # Section 2, System Architecture
 │   ├── README.md            # Documentation
+│   ├── images/              # Diagrams and images for section 2
+│   │   └── diagram.png      # Diagram for section 2
 ├── 3-problem-solving/       # Section 3, Problem Solving
 │   ├── main.py              # Average Price Calculator App
 │   ├── README.md            # Documentation
 ├── 4-security-task/         # Section 4, Security Task
 │   ├── README.md            # Documentation
-├── README.md                # Main README file
-└── .gitignore               # Git ignore file
+│   ├── docker-elk/          # Docker setup for ELK stack
+│   │   ├── elasticsearch/   # Elasticsearch setup
+│   │   │   ├── config/      # Configuration files
+│   │   │   │   └── elasticsearch.yml
+│   │   │   ├── Dockerfile   # Dockerfile for Elasticsearch
+│   │   ├── extensions/      # ELK extensions
+│   │   │   ├── curator/     # Curator extension for log management
+│   │   │   ├── enterprise-search/ # Enterprise Search extension
+│   │   │   ├── filebeat/    # Filebeat for log shipping
+│   │   │   ├── fleet/       # Fleet for Elastic Agent management
+│   │   │   ├── heartbeat/   # Heartbeat for monitoring
+│   │   │   ├── metricbeat/  # Metricbeat for monitoring system metrics
+│   │   ├── kibana/          # Kibana setup
+│   │   │   ├── config/      # Kibana configuration files
+│   │   │   ├── Dockerfile   # Dockerfile for Kibana
+│   │   ├── logstash/        # Logstash setup
+│   │   │   ├── config/      # Logstash configuration files
+│   │   │   ├── pipeline/    # Logstash pipeline configuration
+│   │   ├── setup/           # ELK setup configuration
+│   │   │   ├── roles/       # Role-based access configuration
+│   │   │   ├── entrypoint.sh # Entry point script
+│   │   ├── ubuntu_logs/     # Sample Ubuntu log files for ingestion
+│   │   │   ├── apt/         # APT logs
+│   │   │   ├── journal/     # System journal logs
+│   │   │   ├── syslog/      # Syslog files
+│   │   ├── .env             # Environment variables for ELK setup
+│   │   ├── .gitattributes   # Git attributes for ELK setup
+│   │   ├── docker-compose.yml # Docker Compose file for ELK stack
+│   └── .gitignore           # Git ignore file
+└── README.md                # Main README file
 ```
 
 ---
