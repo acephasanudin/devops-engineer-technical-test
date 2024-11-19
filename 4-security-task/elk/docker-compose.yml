@@ -1,0 +1,109 @@
+services:
+  elasticsearch:
+    image: elasticsearch:7.16.1
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elk_data:/usr/share/elasticsearch/data/
+      - ./configs/elasticsearch/jvm.options:/usr/share/elasticsearch/config/jvm.options.d/jvm.options
+      - ./configs/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    environment:
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=0.0.0.0
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=true
+      - cluster.name=elasticsearch
+      - bootstrap.memory_lock=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    networks:
+      - elk
+
+  logstash:
+    image: logstash:7.16.1
+    container_name: logstash
+    environment:
+      - discovery.seed_hosts=logstash
+      - LS_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ./configs/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+      - ./configs/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ls_data:/usr/share/logstash/data
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: kibana:7.16.1
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./configs/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - kb_data:/usr/share/kibana/data
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+
+  filebeat:
+    image: elastic/filebeat:7.16.1
+    container_name: filebeat
+    user: root
+    command: ["filebeat", "-e", "--strict.perms=false"]
+    volumes:
+      - log_data:/var/log:ro
+      - ./configs/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+      - kibana
+
+  ubuntu:
+    image: ubuntu:20.04
+    container_name: ubuntu
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+    volumes:
+      - log_data:/var/log
+    command: >
+      bash -c "
+        apt-get update && 
+        apt-get install -y openssh-server rsyslog sudo && 
+        echo 'root:root' | chpasswd &&  # Set root password
+        echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config &&  # Allow root login
+        service rsyslog start && 
+        service ssh start && 
+        tail -f /var/log/auth.log /var/log/syslog"  # Tail logs for auth and syslog
+    ports:
+      - "2222:22"  # Expose SSH port
+    networks:
+      - elk
+    depends_on:
+      - elasticsearch
+      - kibana
+
+networks:
+  elk:
+    driver: bridge
+
+volumes:
+  elk_data:
+  ls_data:
+  kb_data:
+  log_data:
